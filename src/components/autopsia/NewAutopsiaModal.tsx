@@ -1,0 +1,573 @@
+"use client";
+
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { supabaseAutopsia as supabase } from "@/lib/autopsia/supabase";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { MapPin, Plus, Loader2, Building2, User, Phone, CheckCircle2 } from "lucide-react";
+
+interface NewAutopsiaModalProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}
+
+export function NewAutopsiaModal({ open, onOpenChange }: NewAutopsiaModalProps) {
+    const queryClient = useQueryClient();
+    const [loading, setLoading] = useState(false);
+    
+
+    // Form state
+    const [sr, setSr] = useState("");
+    const [buildingId, setBuildingId] = useState("");
+    const [chimney, setChimney] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    
+    
+    const [priority, setPriority] = useState<"A" | "B" | "C">("B");
+    const [phone, setPhone] = useState("");
+    const [managerPhone, setManagerPhone] = useState("");
+    const [address, setAddress] = useState("");
+    const [floor, setFloor] = useState("");
+    const [city, setCity] = useState<string>("");
+    const [savedCities, setSavedCities] = useState<string[]>([]);
+    const [newCityName, setNewCityName] = useState("");
+    const [isAddingCity, setIsAddingCity] = useState(false);
+
+    const [contractor, setContractor] = useState<string>("");
+    const [recipientEmail, setRecipientEmail] = useState<string>("");
+    const [savedContractors, setSavedContractors] = useState<{name: string, email: string}[]>([]);
+    const [newContractorName, setNewContractorName] = useState("");
+    const [newContractorEmail, setNewContractorEmail] = useState("");
+    const [isAddingContractor, setIsAddingContractor] = useState(false);
+
+    const [notes, setNotes] = useState("");
+
+    React.useEffect(() => {
+        const storedCities = localStorage.getItem("autopsia_saved_cities");
+        if (storedCities) {
+            try {
+                const parsed = JSON.parse(storedCities);
+                setSavedCities(parsed);
+                if (parsed.length > 0) setCity(parsed[0]);
+            } catch (e) {}
+        }
+        
+        const storedContractors = localStorage.getItem("autopsia_saved_contractors");
+        if (storedContractors) {
+            try {
+                const parsed = JSON.parse(storedContractors);
+                setSavedContractors(parsed);
+                if (parsed.length > 0) {
+                    setContractor(parsed[0].name);
+                    setRecipientEmail(parsed[0].email);
+                }
+            } catch (e) {}
+        }
+    }, []);
+
+    const resetForm = () => {
+        setSr("");
+        setBuildingId("");
+        setChimney("");
+        setFirstName("");
+        setLastName("");
+        
+        
+        setPriority("B");
+        setPhone("");
+        setManagerPhone("");
+        setAddress("");
+        setFloor("");
+        
+        if (savedCities.length > 0) setCity(savedCities[0]);
+        else setCity("");
+        setIsAddingCity(false);
+        setNewCityName("");
+
+        if (savedContractors.length > 0) {
+            setContractor(savedContractors[0].name);
+            setRecipientEmail(savedContractors[0].email);
+        } else {
+            setContractor("");
+            setRecipientEmail("");
+        }
+        setIsAddingContractor(false);
+        setNewContractorName("");
+        setNewContractorEmail("");
+
+        setNotes("");
+    };
+
+    
+
+    const handleAddCity = () => {
+        if (!newCityName.trim()) return;
+        const updated = [...savedCities, newCityName.trim()];
+        setSavedCities(updated);
+        localStorage.setItem("autopsia_saved_cities", JSON.stringify(updated));
+        setCity(newCityName.trim());
+        setNewCityName("");
+        setIsAddingCity(false);
+    };
+
+    const handleAddContractor = () => {
+        if (!newContractorName.trim() || !newContractorEmail.trim()) return;
+        const newObj = { name: newContractorName.trim(), email: newContractorEmail.trim() };
+        const updated = [...savedContractors, newObj];
+        setSavedContractors(updated);
+        localStorage.setItem("autopsia_saved_contractors", JSON.stringify(updated));
+        setContractor(newObj.name);
+        setRecipientEmail(newObj.email);
+        setNewContractorName("");
+        setNewContractorEmail("");
+        setIsAddingContractor(false);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!lastName.trim()) {
+            toast.error("Παρακαλώ συμπληρώστε το Επίθετο.");
+            return;
+        }
+        if (!address.trim()) {
+            toast.error("Παρακαλώ συμπληρώστε τη Διεύθυνση.");
+            return;
+        }
+        if (!city.trim() && !newCityName.trim()) {
+            toast.error("Παρακαλώ επιλέξτε ή προσθέστε πόλη.");
+            return;
+        }
+        if (!contractor.trim() && !newContractorName.trim()) {
+            toast.error("Παρακαλώ επιλέξτε ή προσθέστε εργολάβο.");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const finalCityName = isAddingCity ? newCityName.trim() : city;
+            const finalContractorName = isAddingContractor ? newContractorName.trim() : contractor;
+            const finalRecipientEmail = isAddingContractor ? newContractorEmail.trim() : recipientEmail;
+            
+            // Auto-add if they typed it but didn't click save
+            if (isAddingCity && finalCityName) {
+                handleAddCity();
+            }
+            if (isAddingContractor && finalContractorName && finalRecipientEmail) {
+                handleAddContractor();
+            }
+
+            // Keep backwards compatibility for legacy flags
+            const isKastoria = finalCityName.toLowerCase() === "καστοριά" || finalCityName.toLowerCase() === "kastoria";
+            const isFlorina = finalCityName.toLowerCase() === "φλώρινα" || finalCityName.toLowerCase() === "florina";
+
+            const finalSr = sr.trim() || `SR-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
+            const cleanChimney = chimney.trim().replace(/^[gG]/i, '').trim();
+
+            const parsedLat = null;
+            const parsedLng = null;
+
+            const payload: any = {
+                sr: finalSr,
+                first_name: firstName.trim() || "",
+                last_name: lastName.trim(),
+                address: address.trim(),
+                city: finalCityName,
+                is_kastoria: isKastoria,
+                is_florina: isFlorina,
+                building_id: buildingId.trim() || null,
+                chimney_type: cleanChimney || null,
+                floor: floor.trim() || null,
+                phone: phone.trim() || null,
+                manager_phone: managerPhone.trim() || null,
+                contractor: finalContractorName,
+                notes: notes.trim() || null,
+                is_upcoming: true,
+                autopsia_completed: false,
+                autopsia_ready: false,
+                is_iosif: false,
+                project_status: "pending",
+                photo_urls: [],
+                autopsia_tech_data: {
+                    priority: priority,
+                    latitude: parsedLat,
+                    longitude: parsedLng,
+                    chimney_number: cleanChimney,
+                    contractor: finalContractorName,
+                    contractor_email: finalRecipientEmail,
+                    recipient_email: finalRecipientEmail,
+                    created_at: new Date().toISOString()
+                }
+            };
+
+            const { data, error } = await supabase.from("customers").insert([payload]).select();
+
+            if (error) throw error;
+
+            toast.success("Η νέα αυτοψία προστέθηκε με επιτυχία!");
+            queryClient.invalidateQueries({ queryKey: ["customers-autopsia2-pending"] });
+            queryClient.invalidateQueries({ queryKey: ["customers"] });
+            resetForm();
+            onOpenChange(false);
+        } catch (err: any) {
+            console.error("Error creating autopsy:", err);
+            toast.error("Σφάλμα κατά την αποθήκευση: " + (err.message || "Άγνωστο σφάλμα"));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto bg-white text-slate-950 border border-slate-200 shadow-2xl p-5 sm:p-6 rounded-2xl">
+                <DialogHeader className="border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2.5">
+                        <div className="p-2 bg-blue-100 rounded-xl text-blue-700">
+                            <Plus className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <DialogTitle className="text-lg sm:text-xl font-bold text-slate-900">
+                                Νέα Αυτοψία FTTH
+                            </DialogTitle>
+                            <DialogDescription className="text-xs sm:text-sm text-slate-500 font-medium">
+                                Συμπληρώστε τα στοιχεία του κτηρίου, πελάτη, πόλης και εργολάβου
+                            </DialogDescription>
+                        </div>
+                    </div>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+                    {/* Identification Row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                            <Label htmlFor="sr" className="text-xs font-bold text-slate-700">SR</Label>
+                            <Input
+                                id="sr"
+                                placeholder="π.χ. SR-2026-101"
+                                value={sr}
+                                onChange={(e) => setSr(e.target.value)}
+                                className="h-9 bg-white border-slate-300 text-slate-900 font-medium text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <Label htmlFor="buildingId" className="text-xs font-bold text-slate-700">Building ID</Label>
+                            <Input
+                                id="buildingId"
+                                placeholder="π.χ. 152431"
+                                value={buildingId}
+                                onChange={(e) => setBuildingId(e.target.value)}
+                                className="h-9 bg-white border-slate-300 text-slate-900 font-medium text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <Label htmlFor="chimney" className="text-xs font-bold text-slate-700">Αρ. Καμπίνας</Label>
+                            <Input
+                                id="chimney"
+                                placeholder="π.χ. 12"
+                                value={chimney}
+                                onChange={(e) => setChimney(e.target.value)}
+                                className="h-9 bg-white border-slate-300 text-slate-900 font-medium text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Customer Info */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <Label htmlFor="firstName" className="text-xs font-bold text-slate-700">Όνομα</Label>
+                            <Input
+                                id="firstName"
+                                placeholder="π.χ. Γεώργιος"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                className="h-9 bg-white border-slate-300 text-slate-900 font-medium text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <Label htmlFor="lastName" className="text-xs font-bold text-slate-700">
+                                Επίθετο <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="lastName"
+                                placeholder="π.χ. Παπαδόπουλος"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                required
+                                className="h-9 bg-white border-slate-300 text-slate-900 font-medium text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Address & Floor */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="sm:col-span-2 space-y-1">
+                            <Label htmlFor="address" className="text-xs font-bold text-slate-700">
+                                Διεύθυνση <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="address"
+                                placeholder="π.χ. Μητροπόλεως 14, Καστοριά"
+                                value={address}
+                                onChange={(e) => setAddress(e.target.value)}
+                                required
+                                className="h-9 bg-white border-slate-300 text-slate-900 font-medium text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <Label htmlFor="floor" className="text-xs font-bold text-slate-700">Όροφος</Label>
+                            <Input
+                                id="floor"
+                                placeholder="π.χ. 1ος, Ισόγειο"
+                                value={floor}
+                                onChange={(e) => setFloor(e.target.value)}
+                                className="h-9 bg-white border-slate-300 text-slate-900 font-medium text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* City & Contractor Selection (Requested specifically by user) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                        {/* City Selection */}
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <MapPin className="h-3.5 w-3.5 text-purple-600" />
+                                Πόλη
+                            </Label>
+                            {!isAddingCity ? (
+                                <Select value={city} onValueChange={(val) => {
+                                    if (val === "new") {
+                                        setIsAddingCity(true);
+                                        setCity("");
+                                    } else {
+                                        setCity(val);
+                                    }
+                                }}>
+                                    <SelectTrigger className="h-8 bg-white border-slate-300 text-slate-900 text-xs font-semibold">
+                                        <SelectValue placeholder="Επιλέξτε πόλη" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-lg max-h-60">
+                                        {savedCities.map(c => (
+                                            <SelectItem key={c} value={c} className="text-xs font-semibold cursor-pointer">
+                                                {c}
+                                            </SelectItem>
+                                        ))}
+                                        {/* Defaults if empty */}
+                                        {savedCities.length === 0 && (
+                                            <>
+                                                <SelectItem value="Καστοριά" className="text-xs font-semibold cursor-pointer">Καστοριά</SelectItem>
+                                                <SelectItem value="Φλώρινα" className="text-xs font-semibold cursor-pointer">Φλώρινα</SelectItem>
+                                            </>
+                                        )}
+                                        <SelectItem value="new" className="text-xs font-bold text-purple-600 cursor-pointer border-t mt-1 pt-1">
+                                            + Προσθήκη νέας πόλης...
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <div className="flex gap-1.5">
+                                    <Input
+                                        placeholder="Όνομα πόλης"
+                                        value={newCityName}
+                                        onChange={(e) => setNewCityName(e.target.value)}
+                                        className="h-8 bg-white border-slate-300 text-xs text-slate-900"
+                                        autoFocus
+                                    />
+                                    <Button type="button" onClick={handleAddCity} size="sm" className="h-8 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-2">
+                                        OK
+                                    </Button>
+                                    <Button type="button" onClick={() => setIsAddingCity(false)} variant="outline" size="sm" className="h-8 text-xs px-2 border-slate-300 text-slate-600">
+                                        X
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Contractor Selection */}
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <Building2 className="h-3.5 w-3.5 text-blue-600" />
+                                Εργολάβος
+                            </Label>
+                            {!isAddingContractor ? (
+                                <Select value={contractor} onValueChange={(val) => {
+                                    if (val === "new") {
+                                        setIsAddingContractor(true);
+                                        setContractor("");
+                                        setRecipientEmail("");
+                                    } else {
+                                        setContractor(val);
+                                        const found = savedContractors.find(c => c.name === val);
+                                        if (found) setRecipientEmail(found.email);
+                                    }
+                                }}>
+                                    <SelectTrigger className="h-8 bg-white border-slate-300 text-slate-900 text-xs font-semibold">
+                                        <SelectValue placeholder="Επιλέξτε εργολάβο" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-lg max-h-60">
+                                        {savedContractors.map(c => (
+                                            <SelectItem key={c.name} value={c.name} className="text-xs font-semibold cursor-pointer">
+                                                {c.name} <span className="text-[10px] text-slate-500 ml-1">({c.email})</span>
+                                            </SelectItem>
+                                        ))}
+                                        {savedContractors.length === 0 && (
+                                            <SelectItem value="OTE" className="text-xs font-semibold cursor-pointer">OTE (SGK Digital)</SelectItem>
+                                        )}
+                                        <SelectItem value="new" className="text-xs font-bold text-blue-600 cursor-pointer border-t mt-1 pt-1">
+                                            + Προσθήκη νέου...
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    <Input
+                                        placeholder="Όνομα εργολάβου"
+                                        value={newContractorName}
+                                        onChange={(e) => setNewContractorName(e.target.value)}
+                                        className="h-8 bg-white border-slate-300 text-xs text-slate-900"
+                                        autoFocus
+                                    />
+                                    <div className="flex gap-1.5">
+                                        <Input
+                                            type="email"
+                                            placeholder="Email παραλήπτη"
+                                            value={newContractorEmail}
+                                            onChange={(e) => setNewContractorEmail(e.target.value)}
+                                            className="h-8 bg-white border-slate-300 text-xs text-slate-900"
+                                        />
+                                        <Button type="button" onClick={handleAddContractor} size="sm" className="h-8 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-2">
+                                            OK
+                                        </Button>
+                                        <Button type="button" onClick={() => setIsAddingContractor(false)} variant="outline" size="sm" className="h-8 text-xs px-2 border-slate-300 text-slate-600">
+                                            X
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {!isAddingContractor && contractor && (
+                                <div className="mt-1 flex flex-col gap-0.5">
+                                    <Label className="text-[10px] font-semibold text-slate-500 ml-0.5">Email Αποστολής (ZIP):</Label>
+                                    <Input
+                                        type="email"
+                                        value={recipientEmail}
+                                        onChange={(e) => setRecipientEmail(e.target.value)}
+                                        className="h-7 text-xs bg-slate-100 border-slate-200 text-slate-700 focus-visible:ring-1"
+                                        placeholder="Email εργολάβου"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Priority */}
+                    <div className="space-y-1">
+                        <Label className="text-xs font-bold text-slate-700">Προτεραιότητα</Label>
+                        <Select value={priority} onValueChange={(val: any) => setPriority(val)}>
+                            <SelectTrigger className="h-9 bg-white border-slate-300 text-slate-900 text-xs sm:text-sm font-semibold">
+                                <SelectValue placeholder="Προτεραιότητα" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border-slate-200 text-slate-900 shadow-lg">
+                                <SelectItem value="A" className="text-xs font-bold text-red-600 cursor-pointer">
+                                    A - Υψηλή
+                                </SelectItem>
+                                <SelectItem value="B" className="text-xs font-bold text-amber-600 cursor-pointer">
+                                    B - Μεσαία (Κανονική)
+                                </SelectItem>
+                                <SelectItem value="C" className="text-xs font-bold text-slate-600 cursor-pointer">
+                                    C - Χαμηλή
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Phones */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <Label htmlFor="phone" className="text-xs font-bold text-slate-700">Τηλέφωνο</Label>
+                            <Input
+                                id="phone"
+                                type="tel"
+                                placeholder="π.χ. 2467012345 ή 69..."
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="h-9 bg-white border-slate-300 text-slate-900 font-medium text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <Label htmlFor="managerPhone" className="text-xs font-bold text-slate-700">Τηλέφωνο Διαχειριστή</Label>
+                            <Input
+                                id="managerPhone"
+                                type="tel"
+                                placeholder="π.χ. 6971234567"
+                                value={managerPhone}
+                                onChange={(e) => setManagerPhone(e.target.value)}
+                                className="h-9 bg-white border-slate-300 text-slate-900 font-medium text-xs sm:text-sm focus-visible:ring-1 focus-visible:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Notes */}
+                    <div className="space-y-1">
+                        <Label htmlFor="notes" className="text-xs font-bold text-slate-700">Σημειώσεις / Παρατηρήσεις</Label>
+                        <Textarea
+                            id="notes"
+                            rows={2}
+                            placeholder="π.χ. Έλεγχος εισόδου, συνεννόηση με διαχειριστή..."
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            className="bg-white border-slate-300 text-slate-900 text-xs sm:text-sm font-medium focus-visible:ring-1 focus-visible:ring-blue-500"
+                        />
+                    </div>
+
+                    <DialogFooter className="pt-2 sm:pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                            disabled={loading}
+                            className="w-full sm:w-auto h-9 text-xs font-bold bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                        >
+                            Ακύρωση
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full sm:w-auto h-9 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center justify-center gap-1.5"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Αποθήκευση...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    Προσθήκη Αυτοψίας
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
