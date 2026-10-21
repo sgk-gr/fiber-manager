@@ -9,9 +9,10 @@ const AutopsiaView = dynamic(() => import("@/components/autopsia/AutopsiaView"),
   ssr: false,
   loading: () => (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900">
-      <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
+      <img src="/logo-icon.webp" alt="Fiber Flow" className="h-16 w-16 mb-4 rounded-2xl shadow-lg animate-pulse" />
+      <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-3" />
       <p className="text-sm font-bold tracking-wider uppercase text-slate-600">
-        Φόρτωση Συστήματος FTTH...
+        Φόρτωση Fiber Flow...
       </p>
     </div>
   ),
@@ -51,7 +52,8 @@ export default function HomePage() {
         <Suspense
           fallback={
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-900">
-              <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
+              <img src="/logo-icon.webp" alt="Fiber Flow" className="h-16 w-16 mb-4 rounded-2xl shadow-lg animate-pulse" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-3" />
               <p className="text-sm font-bold tracking-wider uppercase text-slate-600">
                 Φόρτωση Συστήματος...
               </p>

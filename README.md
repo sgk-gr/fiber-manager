@@ -1,6 +1,6 @@
-# Fiber Manager (FTTH Autopsia & Telecom Operations)
+# Fiber Flow (FTTH Autopsia & Telecom Operations)
 
-Πλήρης, αυτόνομη web εφαρμογή πεδίου και back-office για τη διαχείριση αυτοψιών οπτικών ινών FTTH (Fiber To The Home).
+Πλήρης, αυτόνομη web εφαρμογή πεδίου και back-office **Fiber Flow** για τη διαχείριση αυτοψιών οπτικών ινών FTTH (Fiber To The Home).
 
 ---
 

@@ -1,8 +1,8 @@
-# Fiber Manager — AI Agent & Developer Guidelines
+# Fiber Flow — AI Agent & Developer Guidelines
 
-> **Project**: Fiber Manager (`fiber-manager`)  
+> **Project**: Fiber Flow (`fiber-flow`)  
 > **Repository**: [https://github.com/sgk-gr/fiber-manager.git](https://github.com/sgk-gr/fiber-manager.git)  
-> **Mission**: Πλήρης πλατφόρμα πεδίου και γραφείου για αυτοψίες οπτικών ινών FTTH (Fiber To The Home), αυτόματα σκαριφήματα, τεχνικές περιγραφές, αποθήκευση R2 και παραγωγή φακέλων OTE.
+> **Mission**: Πλήρης πλατφόρμα πεδίου και γραφείου Fiber Flow για αυτοψίες οπτικών ινών FTTH (Fiber To The Home), αυτόματα σκαριφήματα, τεχνικές περιγραφές, αποθήκευση R2 και παραγωγή φακέλων OTE.
 
 ---
 

@@ -11,11 +11,15 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Fiber Manager | Σύστημα Αυτοψιών & Διαχείρισης FTTH",
+  title: "Fiber Flow | Σύστημα Αυτοψιών & Διαχείρισης FTTH",
   description:
-    "Επαγγελματική πλατφόρμα πεδίου για αυτοψίες οπτικών ινών FTTH, ψηφιακές υπογραφές, αυτόματα σκαριφήματα, τεχνικές περιγραφές και αρχειοθέτηση φακέλων έργων.",
+    "Επαγγελματική πλατφόρμα πεδίου Fiber Flow για αυτοψίες οπτικών ινών FTTH, ψηφιακές υπογραφές, αυτόματα σκαριφήματα, τεχνικές περιγραφές και αρχειοθέτηση φακέλων έργων.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
   },
 };
 
@@ -33,6 +37,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="el" className="ftth-theme light" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" href="/icon.png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+      </head>
       <body className={`${inter.variable} font-sans antialiased ftth-theme bg-slate-50 text-slate-900`}>
         <TooltipProvider>
           {children}

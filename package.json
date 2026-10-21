@@ -1,8 +1,8 @@
 {
-  "name": "fiber-manager",
+  "name": "fiber-flow",
   "version": "1.0.0",
   "private": true,
-  "description": "Fiber Manager | Standalone FTTH Autopsia & Telecom Field Operations Platform",
+  "description": "Fiber Flow | FTTH Autopsia & Telecom Field Operations Platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

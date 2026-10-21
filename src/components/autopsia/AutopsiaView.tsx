@@ -1652,7 +1652,7 @@ export default function AutopsiaPage() {
     const customerUrlParam = searchParams ? searchParams.get("customer") : null;
     const [user, setUser] = useState<User | null>(null);
     useEffect(() => {
-        document.title = "Αυτοψίες FTTH | Field Engineering System";
+        document.title = "Fiber Flow | FTTH Field Engineering";
     }, []);
 
     useEffect(() => {
@@ -2991,11 +2991,9 @@ export default function AutopsiaPage() {
             <header className={cn("sticky top-0 z-30 -mx-3 sm:-mx-6 px-3 sm:px-6 py-3 mb-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/70", customerUrlParam && "hidden")}>
                 <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-11 w-11 shrink-0 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-600/25">
-                            <Zap className="h-5 w-5 text-white" />
-                        </div>
+                        <img src="/logo-icon.webp" alt="Fiber Flow" className="h-11 w-11 shrink-0 rounded-2xl object-cover shadow-md shadow-blue-600/20 border border-slate-200/60" />
                         <div className="min-w-0">
-                            <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight leading-tight truncate">Αυτοψίες FTTH</h1>
+                            <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-tight truncate flex items-center gap-2"><span>Fiber Flow</span><span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">FTTH</span></h1>
                             <p className="text-xs text-slate-500 font-medium truncate">Σύστημα 7 Εντύπων ΟΤΕ • {customers?.length || 0} κτήρια</p>
                         </div>
                     </div>
