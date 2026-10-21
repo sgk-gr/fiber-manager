@@ -1642,11 +1642,6 @@ const compressImage = (file: File | Blob, watermark?: string): Promise<Blob | Fi
 
 export default function AutopsiaPage() {
     const [showEngineerSigSetup, setShowEngineerSigSetup] = useState(false);
-    useEffect(() => {
-        if (!localStorage.getItem("autopsia_engineer_signature")) {
-            setShowEngineerSigSetup(true);
-        }
-    }, []);
 
     const searchParams = useSearchParams();
     const customerUrlParam = searchParams ? searchParams.get("customer") : null;
@@ -3006,13 +3001,28 @@ export default function AutopsiaPage() {
                             <span>Νέα Αυτοψία</span>
                         </Button>
 
-                        <Button onClick={() => setShowEngineerSigSetup(true)} variant="outline" className="h-10 px-3 rounded-2xl flex items-center gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer" title="Υπογραφή Τεχνικού">
-                            <PenLine className="h-4 w-4 text-blue-600" />
-                            <span className="hidden md:inline text-sm font-semibold">Υπογραφή Τεχνικού</span>
-                        </Button>
-                        <Button onClick={() => { localStorage.removeItem("autopsia_engineer_signature"); window.location.reload(); }} variant="outline" className="h-10 w-10 p-0 rounded-2xl flex items-center justify-center border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 cursor-pointer" title="Διαγραφή Υπογραφής Τεχνικού">
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="h-10 px-3 rounded-2xl flex items-center gap-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-xs cursor-pointer" title="Ρυθμίσεις">
+                                    <Settings className="h-4 w-4 text-slate-700" />
+                                    <span className="hidden sm:inline text-sm font-semibold">Ρυθμίσεις</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-60 p-1.5 rounded-2xl shadow-xl bg-white border-slate-200">
+                                <DropdownMenuLabel className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 py-1">
+                                    Ρυθμίσεις
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => setShowEngineerSigSetup(true)} className="cursor-pointer flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-800 hover:bg-blue-50 hover:text-blue-600 font-semibold text-sm">
+                                    <PenLine className="h-4 w-4 text-blue-600" />
+                                    <span>Υπογραφή Μηχανικού</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { localStorage.removeItem("autopsia_engineer_signature"); toast.success("Η υπογραφή διαγράφηκε"); }} className="cursor-pointer flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 font-semibold text-sm">
+                                    <Trash2 className="h-4 w-4 text-rose-600" />
+                                    <span>Διαγραφή Υπογραφής</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
                         {user && (
                             <DropdownMenu>
