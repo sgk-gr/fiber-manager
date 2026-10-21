@@ -2993,8 +2993,7 @@ export default function AutopsiaPage() {
                     <div className="flex items-center gap-3 min-w-0">
                         <img src="/logo-icon.webp" alt="Fiber Flow" className="h-11 w-11 shrink-0 rounded-2xl object-cover shadow-md shadow-blue-600/20 border border-slate-200/60" />
                         <div className="min-w-0">
-                            <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight leading-tight truncate flex items-center gap-2"><span>Fiber Flow</span><span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">FTTH</span></h1>
-                            <p className="text-xs text-slate-500 font-medium truncate">Σύστημα 7 Εντύπων ΟΤΕ • {customers?.length || 0} κτήρια</p>
+                            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight truncate">Fiber Flow</h1>
                         </div>
                     </div>
 
