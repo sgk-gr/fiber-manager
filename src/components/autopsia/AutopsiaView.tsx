@@ -2988,7 +2988,7 @@ export default function AutopsiaPage() {
                     <div className="flex items-center gap-3 min-w-0">
                         <img src="/logo-icon.webp" alt="Fiber Flow" className="h-11 w-11 shrink-0 rounded-2xl object-cover shadow-md shadow-blue-600/20 border border-slate-200/60" />
                         <div className="min-w-0">
-                            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight truncate">Fiber Flow</h1>
+                            <h1 className="text-xl sm:text-2xl font-normal text-slate-900 tracking-tight leading-tight truncate font-sans" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Fiber Flow</h1>
                         </div>
                     </div>
 
