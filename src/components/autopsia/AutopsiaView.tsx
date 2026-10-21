@@ -3034,7 +3034,7 @@ export default function AutopsiaPage() {
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={() => setStatusFilter("pending")} className="cursor-pointer flex items-center gap-2">
-                                            <Zap className="h-4 w-4 text-amber-500" /> Εκκρεμείς Αυτοψίες
+                                            <Zap className="h-4 w-4 text-[#FA4516]" /> Εκκρεμείς Αυτοψίες
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => setStatusFilter("ready")} className="cursor-pointer flex items-center gap-2">
                                             <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Έτοιμες για Αποστολή
@@ -3068,7 +3068,7 @@ export default function AutopsiaPage() {
             <section className={cn("max-w-[1600px] mx-auto mb-5 space-y-3", customerUrlParam && "hidden")}>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {([
-                        { key: "pending", label: "Εκκρεμείς", sub: "σε εκκρεμότητα", count: pendingCount, Icon: Zap, activeCls: "bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-500/25", iconCls: "bg-amber-100 text-amber-600" },
+                        { key: "pending", label: "Εκκρεμείς", sub: "σε εκκρεμότητα", count: pendingCount, Icon: Zap, activeCls: "bg-[#FA4516] text-white shadow-lg shadow-[#FA4516]/30", iconCls: "bg-[#FA4516]/10 text-[#FA4516]" },
                         { key: "ready", label: "Έτοιμες", sub: "για αποστολή", count: readyCount, Icon: CheckCircle2, activeCls: "bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25", iconCls: "bg-emerald-100 text-emerald-600" },
                     ] as const).map(({ key, label, sub, count, Icon, activeCls, iconCls }) => {
                         const active = statusFilter === key;
